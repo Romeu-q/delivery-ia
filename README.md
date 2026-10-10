@@ -154,12 +154,16 @@ Vue ◀── SSE: tool / delta / chart / campaign / done ◀── texto em str
 
 ## Modelo de IA
 
-**Google Gemini 2.5 Flash** (principal) com **Gemini 2.5 Flash-Lite** como fallback, configuráveis no `.env`.
+**Google Gemini 3.5 Flash-Lite** (principal) com **Gemini 3.1 Flash-Lite** como fallback, ambos configuráveis
+no `.env` (`GEMINI_MODEL`, `GEMINI_FALLBACK_MODEL`), com raciocínio em nível `low` (`AI_THINKING_LEVEL`).
 
 - Suporte nativo a *function calling* paralelo e streaming, que são a base da arquitetura.
 - Bom desempenho em português e em interpretação de dados tabulares.
-- Custo baixo (US$ 0,30 / 1M tokens de entrada) e camada gratuita para a demonstração.
-- Latência baixa — importante numa interface de chat.
+- **Latência**: ~3 s por resposta completa, incluindo as consultas. Testei o `gemini-3.8-flash`, mais capaz,
+  mas no momento ele levava mais de 70 s por chamada (alta demanda), o que inviabiliza um chat. Como o trabalho
+  pesado (cálculos) é feito no banco, um modelo leve já interpreta bem.
+- **Custo**: US$ 0,30 / 1M tokens de entrada e US$ 2,50 / 1M de saída; uma pergunta típica usa ~9 mil tokens,
+  menos de US$ 0,01. Há camada gratuita, suficiente para a demonstração.
 
 O provedor está isolado em `GeminiClient`; trocar por outro (Claude, OpenAI) exige um cliente com a mesma
 interface de streaming e a conversão do formato de ferramentas, sem tocar nas consultas.
