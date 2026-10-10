@@ -6,7 +6,7 @@ números**: ela escolhe quais consultas fazer (via *function calling*), o backen
 parametrizadas no MySQL e devolve os números já calculados, e a IA interpreta e recomenda.
 
 - **Aplicação:** `<URL pública>`
-- **Repositório:** `<URL do repositório>`
+- **Repositório:** https://github.com/Romeu-q/delivery-ia
 
 Stack: PHP 8.4 · Laravel 13 · MySQL 8 · Vue 3 (Vite + Tailwind) · Chart.js · Google Gemini · Docker (FrankenPHP) · Railway.
 
@@ -35,7 +35,7 @@ Stack: PHP 8.4 · Laravel 13 · MySQL 8 · Vue 3 (Vite + Tailwind) · Chart.js �
 Pré-requisitos: PHP 8.3+ (extensões `pdo_mysql`, `mbstring`, `intl`), Composer, Node 20.19+ e MySQL 8.
 
 ```bash
-git clone <URL do repositório> delivery-ia && cd delivery-ia
+git clone https://github.com/Romeu-q/delivery-ia.git && cd delivery-ia
 composer install
 npm install && npm run build
 cp .env.example .env
