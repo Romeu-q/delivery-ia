@@ -65,6 +65,9 @@ return [
     |
     */
 
+    // Loja usada na demonstração pública (em produção viria do usuário autenticado)
+    'demo_store_id' => (int) env('DEMO_STORE_ID', 1),
+
     'timezone' => env('APP_TIMEZONE', 'America/Sao_Paulo'),
 
     /*
