@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Customer extends Model
 {
-
     protected $fillable = ['store_id', 'name', 'phone', 'first_order_at', 'last_order_at'];
 
     protected function casts(): array
@@ -27,13 +26,5 @@ class Customer extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
-    }
-
-    /** Telefone mascarado: dado pessoal não é enviado para a IA nem exibido por completo. */
-    public function maskedPhone(): string
-    {
-        $digits = preg_replace('/\D/', '', $this->phone);
-
-        return '(**) *****-'.substr($digits, -4);
     }
 }
