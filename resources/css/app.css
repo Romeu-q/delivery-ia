@@ -1,9 +1,35 @@
 @import 'tailwindcss';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../js/**/*.vue';
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-brand-50: #fff4ed;
+    --color-brand-100: #ffe6d4;
+    --color-brand-500: #f2622e;
+    --color-brand-600: #e14a17;
+    --color-brand-700: #b93812;
 }
+
+/* Conteúdo markdown das respostas da IA */
+.prose-answer p { margin: 0 0 0.6rem; }
+.prose-answer p:last-child { margin-bottom: 0; }
+.prose-answer ul, .prose-answer ol { margin: 0.25rem 0 0.75rem 1.25rem; }
+.prose-answer ul { list-style: disc; }
+.prose-answer ol { list-style: decimal; }
+.prose-answer li { margin: 0.15rem 0; }
+.prose-answer strong { font-weight: 600; color: var(--color-stone-900); }
+.prose-answer h1, .prose-answer h2, .prose-answer h3 { font-weight: 600; margin: 0.75rem 0 0.35rem; }
+.prose-answer code { font-size: 0.85em; background: var(--color-stone-100); padding: 0.1rem 0.3rem; border-radius: 0.25rem; }
+.prose-answer table { font-size: 0.875rem; margin: 0.5rem 0; border-collapse: collapse; }
+.prose-answer th, .prose-answer td { border: 1px solid var(--color-stone-200); padding: 0.25rem 0.5rem; text-align: left; }
+
+.typing-cursor::after {
+    content: '▍';
+    margin-left: 1px;
+    animation: blink 1s steps(2, start) infinite;
+    color: var(--color-brand-500);
+}
+@keyframes blink { to { visibility: hidden; } }
