@@ -5,7 +5,7 @@ clientes. A IA (Google Gemini) é consultada **em tempo real** a cada pergunta, 
 números**: ela escolhe quais consultas fazer (via *function calling*), o backend executa consultas fixas e
 parametrizadas no MySQL e devolve os números já calculados, e a IA interpreta e recomenda.
 
-- **Aplicação:** `<URL pública>`
+- **Aplicação:** https://delivery-ia-production.up.railway.app
 - **Repositório:** https://github.com/Romeu-q/delivery-ia
 
 Stack: PHP 8.4 · Laravel 13 · MySQL 8 · Vue 3 (Vite + Tailwind) · Chart.js · Google Gemini · Docker (FrankenPHP) · Railway.
