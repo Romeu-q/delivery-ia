@@ -42,10 +42,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Protege custo e disponibilidade da IA: limite por minuto (visitante) e por dia (IP)
+        // Protege custo e disponibilidade da IA: limite por minuto e por dia, por IP
+        // (por IP e não por sessão: descartar o cookie não "zera" o limite)
         RateLimiter::for('chat', fn (Request $request) => [
             Limit::perMinute(config('ai.rate_limit.per_minute'))
-                ->by('chat-min:'.$request->session()->get('visitor_id', $request->ip()))
+                ->by('chat-min:'.$request->ip())
                 ->response(fn () => response()->json([
                     'message' => 'Muitas perguntas em sequência. Aguarde um minuto e tente novamente.',
                 ], 429)),

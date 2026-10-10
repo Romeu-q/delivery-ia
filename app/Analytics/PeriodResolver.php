@@ -63,6 +63,6 @@ final class PeriodResolver
             throw new InvalidArgumentException('Período máximo de 800 dias.');
         }
 
-        return new Period($start, $end->gt($this->now) ? $this->now : $end,"de {$start->format('d/m/Y')} a {$end->subDay()->format('d/m/Y')}");
+        return new Period($start, $end->gt($this->now) ? $this->now : $end, "de {$start->format('d/m/Y')} a {$end->subDay()->format('d/m/Y')}");
     }
 }
