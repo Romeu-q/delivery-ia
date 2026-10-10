@@ -160,7 +160,7 @@ class SalesAnalytics
      * Produtos que mais perderam (ou ganharam) vendas em relação ao período anterior.
      * Ignora produtos com volume muito baixo nos dois períodos para evitar "−100%" sem relevância.
      */
-    public function productTrends(int $storeId, Period $period, string $direction, int $limit): array
+    public function productTrends(int $storeId, Period $period, string $direction, int $limit, string $metric = 'quantity'): array
     {
         $current = $this->productSales($storeId, $period)->get()->keyBy('id');
         $previous = $this->productSales($storeId, $period->previous())->get()->keyBy('id');
@@ -183,17 +183,17 @@ class SalesAnalytics
                 'quantity_change_pct' => self::pctChange($qCur, $qPrev),
                 'revenue_current' => round((float) ($cur->revenue ?? 0), 2),
                 'revenue_previous' => round((float) ($prev->revenue ?? 0), 2),
+                'revenue_change' => round((float) ($cur->revenue ?? 0) - (float) ($prev->revenue ?? 0), 2),
                 'revenue_change_pct' => self::pctChange((float) ($cur->revenue ?? 0), (float) ($prev->revenue ?? 0)),
             ];
         }
 
-        usort($rows, fn ($a, $b) => $direction === 'growing'
-            ? $b['quantity_change'] <=> $a['quantity_change']
-            : $a['quantity_change'] <=> $b['quantity_change']);
+        $key = $metric === 'revenue' ? 'revenue_change' : 'quantity_change';
+        usort($rows, fn ($a, $b) => $direction === 'growing' ? $b[$key] <=> $a[$key] : $a[$key] <=> $b[$key]);
 
         return array_values(array_filter(
             array_slice($rows, 0, $limit),
-            fn ($r) => $direction === 'growing' ? $r['quantity_change'] > 0 : $r['quantity_change'] < 0,
+            fn ($r) => $direction === 'growing' ? $r[$key] > 0 : $r[$key] < 0,
         ));
     }
 
@@ -224,6 +224,7 @@ class SalesAnalytics
                     'quantity_change_pct' => self::pctChange((int) ($cur->quantity ?? 0), (int) ($prev->quantity ?? 0)),
                     'revenue_current' => round($revenue, 2),
                     'revenue_previous' => round((float) ($prev->revenue ?? 0), 2),
+                    'revenue_change' => round($revenue - (float) ($prev->revenue ?? 0), 2),
                     'revenue_change_pct' => self::pctChange($revenue, (float) ($prev->revenue ?? 0)),
                     'share_of_revenue_pct' => $totalRevenue ? round($revenue / $totalRevenue * 100, 1) : 0.0,
                 ];

@@ -78,10 +78,19 @@ class AssistantService
                     $onText("\n\n");
                 }
 
+                $roundStarted = microtime(true);
                 $response = $this->generate(
                     $this->payload($conversation, $now, $contents, lastRound: $round === $maxRounds),
                     $onText,
                 );
+                Log::debug('ai.round', [
+                    'round' => $round,
+                    'model' => $response->model,
+                    'ms' => (int) round((microtime(true) - $roundStarted) * 1000),
+                    'prompt_tokens' => $response->promptTokens,
+                    'output_tokens' => $response->outputTokens,
+                    'calls' => array_column($response->functionCalls(), 'name'),
+                ]);
                 $model = $response->model;
                 $promptTokens += $response->promptTokens;
                 $outputTokens += $response->outputTokens;
@@ -219,10 +228,12 @@ class AssistantService
             'tools' => [['functionDeclarations' => $this->tools->declarations()]],
             // Na última rodada a IA é obrigada a responder com o que já tem (evita loop de ferramentas)
             'toolConfig' => ['functionCallingConfig' => ['mode' => $lastRound ? 'NONE' : 'AUTO']],
-            'generationConfig' => [
+            'generationConfig' => array_filter([
                 'temperature' => config('ai.temperature'),
                 'maxOutputTokens' => config('ai.max_output_tokens'),
-            ],
+                // Modelos com raciocínio: nível menor = respostas mais rápidas e baratas
+                'thinkingConfig' => config('ai.thinking_level') ? ['thinkingLevel' => config('ai.thinking_level')] : null,
+            ]),
         ];
     }
 

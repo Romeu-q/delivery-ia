@@ -21,6 +21,7 @@ class GetProductTrends extends Tool
     {
         return $this->periodProperties() + [
             'direction' => ['type' => 'string', 'enum' => ['declining', 'growing'], 'description' => 'Padrão: declining.'],
+            'metric' => ['type' => 'string', 'enum' => ['quantity', 'revenue'], 'description' => 'Ordenar pela variação de unidades ou de faturamento (padrão: quantity).'],
             'limit' => ['type' => 'integer', 'description' => '1 a 10, padrão 5.'],
         ];
     }
@@ -29,6 +30,7 @@ class GetProductTrends extends Tool
     {
         return $this->periodRules() + [
             'direction' => ['nullable', Rule::in(['declining', 'growing'])],
+            'metric' => ['nullable', Rule::in(['quantity', 'revenue'])],
             'limit' => ['nullable', 'integer', 'min:1', 'max:10'],
         ];
     }
@@ -37,20 +39,28 @@ class GetProductTrends extends Tool
     {
         $period = $this->period($args, $context);
         $direction = $args['direction'] ?? 'declining';
-        $rows = $this->analytics->productTrends($context->storeId, $period, $direction, (int) ($args['limit'] ?? 5));
+        $metric = $args['metric'] ?? 'quantity';
+        $rows = $this->analytics->productTrends($context->storeId, $period, $direction, (int) ($args['limit'] ?? 5), $metric);
+        $byRevenue = $metric === 'revenue';
 
         return new ToolResult(
             [
                 'period' => $period->toArray(),
                 'compared_with' => $period->previous()->toArray(),
                 'direction' => $direction,
+                'sorted_by' => "{$metric}_change",
                 'products' => $rows,
             ],
-            $rows ? $this->chart('bar', $direction === 'growing' ? 'Produtos em alta (unidades)' : 'Produtos em queda (unidades)',
-                array_column($rows, 'product'), [
-                    ['label' => 'Período anterior', 'data' => array_column($rows, 'quantity_previous')],
-                    ['label' => 'Período atual', 'data' => array_column($rows, 'quantity_current')],
-                ], 'number') : null,
+            $rows ? $this->chart(
+                'bar',
+                ($direction === 'growing' ? 'Produtos em alta' : 'Produtos em queda').($byRevenue ? ' (faturamento)' : ' (unidades)'),
+                array_column($rows, 'product'),
+                [
+                    ['label' => 'Período anterior', 'data' => array_column($rows, $byRevenue ? 'revenue_previous' : 'quantity_previous')],
+                    ['label' => 'Período atual', 'data' => array_column($rows, $byRevenue ? 'revenue_current' : 'quantity_current')],
+                ],
+                $byRevenue ? 'currency' : 'number',
+            ) : null,
         );
     }
 }

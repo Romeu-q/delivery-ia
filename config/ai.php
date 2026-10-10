@@ -11,12 +11,15 @@ return [
     // Ordem de tentativa: se o principal falhar antes de começar a responder (429, 5xx, timeout),
     // o próximo da lista é usado.
     'models' => array_values(array_filter([
-        env('GEMINI_MODEL', 'gemini-2.5-flash'),
-        env('GEMINI_FALLBACK_MODEL', 'gemini-2.5-flash-lite'),
+        env('GEMINI_MODEL', 'gemini-3.5-flash-lite'),
+        env('GEMINI_FALLBACK_MODEL', 'gemini-3.1-flash-lite'),
     ])),
 
     'temperature' => (float) env('AI_TEMPERATURE', 0.2),
     'max_output_tokens' => (int) env('AI_MAX_OUTPUT_TOKENS', 2048),
+
+    // Nível de raciocínio dos modelos Gemini 3 (minimal | low | medium | high). Vazio = padrão do modelo.
+    'thinking_level' => env('AI_THINKING_LEVEL', 'low'),
 
     // Máximo de rodadas modelo → ferramentas → modelo por pergunta (evita loops e custo descontrolado)
     'max_tool_rounds' => 5,
@@ -39,9 +42,9 @@ return [
     // Preço em US$ por 1 milhão de tokens (entrada / saída) para cálculo de custo.
     // Fonte: https://ai.google.dev/gemini-api/docs/pricing — atualizar se o provedor mudar.
     'pricing' => [
-        'gemini-2.5-flash' => ['input' => 0.30, 'output' => 2.50],
-        'gemini-2.5-flash-lite' => ['input' => 0.10, 'output' => 0.40],
-        'gemini-2.5-pro' => ['input' => 1.25, 'output' => 10.00],
-        'default' => ['input' => 0.30, 'output' => 2.50],
+        'gemini-3.8-flash' => ['input' => 0.75, 'output' => 3.75], // preço promocional até 31/12/2026
+        'gemini-3.5-flash-lite' => ['input' => 0.30, 'output' => 2.50],
+        'gemini-3.1-flash-lite' => ['input' => 0.25, 'output' => 1.50],
+        'default' => ['input' => 0.75, 'output' => 3.75],
     ],
 ];
