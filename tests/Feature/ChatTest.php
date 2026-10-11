@@ -83,7 +83,8 @@ class ChatTest extends TestCase
         Http::assertSentCount(2);
         $second = Http::recorded()[1][0];
         $functionResponse = $second->data()['contents'][2]['parts'][0]['functionResponse'];
-        $this->assertSame(55.0, $functionResponse['response']['metrics']['revenue']['current']);
+        // Decimais com 2 casas fixas, para a IA copiar os centavos sem "completar"
+        $this->assertSame('55.00', $functionResponse['response']['metrics']['revenue']['current']);
         // E a chave vai no header, nunca na URL
         $this->assertStringNotContainsString('test-key', $second->url());
         $this->assertSame('test-key', $second->header('x-goog-api-key')[0]);

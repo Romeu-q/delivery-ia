@@ -129,7 +129,7 @@ class AssistantService
 
                     $functionResponses[] = ['functionResponse' => [
                         'name' => $call['name'],
-                        'response' => $result->data,
+                        'response' => self::fixedDecimals($result->data),
                     ]];
                 }
 
@@ -269,6 +269,21 @@ class AssistantService
         }
 
         return $contents;
+    }
+
+    /**
+     * Decimais vão para a IA com 2 casas fixas ("192.30" e não 192.3). Com o zero cortado, o modelo
+     * às vezes "completa" os centavos errado ao formatar em reais (ex.: escreveu R$ 192,33).
+     */
+    public static function fixedDecimals(array $data): array
+    {
+        array_walk_recursive($data, function (&$value) {
+            if (is_float($value)) {
+                $value = number_format($value, 2, '.', '');
+            }
+        });
+
+        return $data;
     }
 
     private function cost(GeminiResponse $response): float
