@@ -124,11 +124,22 @@ function stop() {
     controller?.abort();
 }
 
+/** Reenvia a última pergunta que terminou em erro (a tentativa com falha sai da tela). */
+function retry() {
+    if (state.loading) return;
+    const lastUser = state.messages.findLastIndex((m) => m.role === 'user');
+    if (lastUser === -1) return;
+    const question = state.messages[lastUser].content;
+    state.messages.splice(lastUser);
+    send(question);
+}
+
 export function useChat() {
     return {
         state: readonly(state),
         send,
         stop,
+        retry,
         openConversation,
         newConversation,
         deleteConversation,

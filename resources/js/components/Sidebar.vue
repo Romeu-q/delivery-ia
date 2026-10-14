@@ -5,7 +5,7 @@ defineProps({
     activeId: { type: String, default: null },
     usage: { type: Object, default: null },
 });
-const emit = defineEmits(['new', 'open', 'delete', 'close']);
+const emit = defineEmits(['new', 'open', 'delete', 'close', 'campaigns']);
 </script>
 
 <template>
@@ -24,6 +24,11 @@ const emit = defineEmits(['new', 'open', 'delete', 'close']);
                 class="w-full rounded-lg border border-stone-200 px-3 py-2 text-left text-sm font-medium text-stone-700 hover:bg-stone-50"
                 @click="emit('new')"
             >+ Nova conversa</button>
+            <button
+                type="button"
+                class="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-stone-600 hover:bg-stone-50"
+                @click="emit('campaigns')"
+            >📣 Campanhas criadas</button>
         </div>
 
         <nav class="mt-3 flex-1 overflow-y-auto px-3" aria-label="Histórico de conversas">

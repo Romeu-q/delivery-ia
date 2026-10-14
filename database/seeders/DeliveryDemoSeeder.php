@@ -74,7 +74,8 @@ class DeliveryDemoSeeder extends Seeder
         $now = CarbonImmutable::now();
         $start = $now->startOfDay()->subDays(self::HISTORY_DAYS);
 
-        $store = Store::query()->create(['name' => 'Sabor da Vila Delivery', 'slug' => 'sabor-da-vila']);
+        // Reaproveita a loja se já existir: a renovação diária troca só pedidos, clientes e produtos
+        $store = Store::query()->firstOrCreate(['slug' => 'sabor-da-vila'], ['name' => 'Sabor da Vila Delivery']);
 
         $products = $this->seedProducts($store->id, $now);
         $customers = $this->buildCustomers($store->id, $faker, $start, $now);

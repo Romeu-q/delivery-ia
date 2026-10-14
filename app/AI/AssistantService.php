@@ -115,6 +115,8 @@ class AssistantService
                         'args' => $call['args'],
                         'ms' => (int) round((microtime(true) - $toolStarted) * 1000),
                         'error' => $result->error,
+                        // Guardado para o gestor conferir os dados usados ("Ver dados consultados")
+                        'data' => $result->data,
                     ];
                     $toolData[] = $result->data;
 
@@ -151,6 +153,7 @@ class AssistantService
                 'charts' => $charts,
                 'campaign' => $campaign,
                 'verification' => $verification,
+                'followups' => FollowUpSuggestions::for(array_column($toolLog, 'name'), $question),
             ]),
             'model' => $model,
             'prompt_tokens' => $promptTokens,

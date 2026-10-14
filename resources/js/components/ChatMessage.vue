@@ -4,12 +4,31 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import ChartBlock from './ChartBlock.vue';
 import CampaignCard from './CampaignCard.vue';
+import DataView from './DataView.vue';
 
 const props = defineProps({
     message: { type: Object, required: true },
+    // Sugestões e "tentar de novo" só aparecem na última resposta
+    isLast: { type: Boolean, default: false },
+    busy: { type: Boolean, default: false },
 });
+const emit = defineEmits(['ask', 'retry']);
 
 const showDetails = ref(false);
+const showData = ref(false);
+const copied = ref(false);
+
+const toolsWithData = computed(() => (meta.value.tools || []).filter((t) => t.data && !t.error));
+
+async function copy() {
+    try {
+        await navigator.clipboard.writeText(props.message.content);
+        copied.value = true;
+        setTimeout(() => (copied.value = false), 1500);
+    } catch {
+        // clipboard indisponível (http sem TLS, permissão negada): ignora
+    }
+}
 
 // A resposta da IA é tratada como conteúdo não confiável: markdown → HTML → sanitizado (evita XSS)
 const html = computed(() => DOMPurify.sanitize(marked.parse(props.message.content || '', { breaks: true })));
@@ -59,18 +78,32 @@ const verification = computed(() => meta.value.verification);
                 <ChartBlock v-for="(chart, i) in meta.charts" :key="i" :chart="chart" />
             </div>
 
-            <div v-if="message.status === 'error'" class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {{ meta.error || 'Não foi possível concluir a resposta.' }}
+            <div v-if="message.status === 'error'" class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                <span>{{ meta.error || 'Não foi possível concluir a resposta.' }}</span>
+                <button
+                    v-if="isLast && !busy"
+                    type="button"
+                    class="rounded-md border border-red-300 bg-white px-2 py-0.5 text-xs font-medium hover:bg-red-100"
+                    @click="emit('retry')"
+                >Tentar novamente</button>
             </div>
 
-            <!-- Rodapé: verificação de números e custo -->
+            <!-- Rodapé: verificação de números, ações e custo -->
             <div v-if="!streaming && message.status === 'ok'" class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-400">
                 <span v-if="verification?.status === 'verified'" class="text-emerald-700" title="Todos os números citados foram encontrados nos dados retornados pelo banco">
                     ✓ {{ verification.checked }} números conferidos com o banco
                 </span>
-                <span v-else-if="verification?.status === 'unverified'" class="text-amber-700" title="Valores que não foram encontrados nos dados consultados">
-                    ⚠ Não confirmados no banco: {{ verification.unverified.join(', ') }}
+                <span
+                    v-else-if="verification?.status === 'unverified'"
+                    class="text-amber-700"
+                    title="A IA citou valores que não aparecem nos dados consultados (pode ser um erro de cópia ou um número sugerido por ela, como um % de desconto). Confira em 'Ver dados consultados'."
+                >
+                    ⚠ Valores fora dos dados consultados: {{ verification.unverified.join(', ') }}
                 </span>
+                <button v-if="toolsWithData.length" type="button" class="hover:text-stone-600" @click="showData = !showData">
+                    {{ showData ? 'ocultar dados' : 'ver dados consultados' }}
+                </button>
+                <button type="button" class="hover:text-stone-600" @click="copy">{{ copied ? 'copiado ✓' : 'copiar' }}</button>
                 <button v-if="message.model" type="button" class="hover:text-stone-600" @click="showDetails = !showDetails">
                     {{ showDetails ? 'ocultar detalhes' : 'detalhes' }}
                 </button>
@@ -80,6 +113,25 @@ const verification = computed(() => meta.value.verification);
                     <span>US$ {{ Number(message.cost_usd).toFixed(5) }}</span>
                     <span>{{ (message.latency_ms / 1000).toFixed(1) }}s</span>
                 </template>
+            </div>
+
+            <!-- Dados exatamente como vieram do banco -->
+            <div v-if="showData" class="space-y-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <section v-for="(tool, i) in toolsWithData" :key="i">
+                    <h4 class="mb-1 text-xs font-semibold text-stone-700">{{ tool.label }}</h4>
+                    <DataView :data="tool.data" />
+                </section>
+            </div>
+
+            <!-- Próximas perguntas sugeridas -->
+            <div v-if="isLast && !busy && meta.followups?.length" class="flex flex-wrap gap-2 pt-1">
+                <button
+                    v-for="s in meta.followups"
+                    :key="s"
+                    type="button"
+                    class="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs text-stone-600 hover:border-brand-500 hover:text-brand-700"
+                    @click="emit('ask', s)"
+                >{{ s }}</button>
             </div>
         </div>
     </div>

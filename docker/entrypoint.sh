@@ -12,4 +12,7 @@ php artisan view:cache
 php artisan migrate --force
 php artisan demo:refresh --if-stale
 
+# Agendador do Laravel (renovação diária da base fictícia) em segundo plano
+php artisan schedule:work &
+
 exec frankenphp php-server --root public --listen "$SERVER_NAME"

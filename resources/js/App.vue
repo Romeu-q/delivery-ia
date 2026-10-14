@@ -1,17 +1,19 @@
 <script setup>
-import { nextTick, onMounted, ref, watch } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { api } from './api';
 import { useChat } from './composables/useChat';
 import Sidebar from './components/Sidebar.vue';
 import KpiBar from './components/KpiBar.vue';
 import ChatMessage from './components/ChatMessage.vue';
 import ChatInput from './components/ChatInput.vue';
+import CampaignsModal from './components/CampaignsModal.vue';
 
-const { state, send, stop, openConversation, newConversation, deleteConversation, refreshConversations } = useChat();
+const { state, send, stop, retry, openConversation, newConversation, deleteConversation, refreshConversations } = useChat();
 
 const dashboard = ref(null);
 const usage = ref(null);
 const sidebarOpen = ref(false);
+const campaignsOpen = ref(false);
 const scroller = ref(null);
 const input = ref(null);
 
@@ -57,11 +59,23 @@ watch(() => state.loading, (loading) => {
     if (!loading) loadUsage();
 });
 
+// Esc interrompe a resposta em andamento
+function onKeydown(e) {
+    if (e.key === 'Escape' && state.loading && !campaignsOpen.value) stop();
+}
+
+function openCampaigns() {
+    sidebarOpen.value = false;
+    campaignsOpen.value = true;
+}
+
 onMounted(() => {
+    window.addEventListener('keydown', onKeydown);
     loadDashboard();
     loadUsage();
     refreshConversations();
 });
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
 </script>
 
 <template>
@@ -80,6 +94,7 @@ onMounted(() => {
                 @open="open"
                 @delete="deleteConversation"
                 @close="sidebarOpen = false"
+                @campaigns="openCampaigns"
             />
         </div>
         <div v-if="sidebarOpen" class="fixed inset-0 z-20 bg-black/30 md:hidden" @click="sidebarOpen = false"></div>
@@ -111,7 +126,15 @@ onMounted(() => {
                         </div>
                     </div>
 
-                    <ChatMessage v-for="m in state.messages" :key="m.id" :message="m" />
+                    <ChatMessage
+                        v-for="(m, i) in state.messages"
+                        :key="m.id"
+                        :message="m"
+                        :is-last="i === state.messages.length - 1"
+                        :busy="state.loading"
+                        @ask="ask"
+                        @retry="retry"
+                    />
                 </div>
             </div>
 
@@ -127,5 +150,7 @@ onMounted(() => {
                 </div>
             </div>
         </main>
+
+        <CampaignsModal v-if="campaignsOpen" @close="campaignsOpen = false" />
     </div>
 </template>
