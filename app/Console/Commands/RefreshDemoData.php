@@ -55,6 +55,12 @@ class RefreshDemoData extends Command
             return true;
         }
 
+        // Lojas mudaram no seeder (ex.: deploy que adicionou lojas): regera mesmo com pedidos recentes
+        $storesWithOrders = DB::table('orders')->distinct()->count('store_id');
+        if ($storesWithOrders !== DeliveryDemoSeeder::storeCount()) {
+            return true;
+        }
+
         $last = DB::table('orders')->max('ordered_at');
 
         return $last === null || now()->subHours(24)->gt($last);

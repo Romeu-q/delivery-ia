@@ -96,6 +96,11 @@ class DeliveryDemoSeeder extends Seeder
 
     private int $nextOrderId = 0;
 
+    public static function storeCount(): int
+    {
+        return count(self::STORES);
+    }
+
     public function run(): void
     {
         mt_srand(self::SEED);
