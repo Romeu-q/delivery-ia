@@ -34,7 +34,7 @@ const emit = defineEmits(['new', 'open', 'delete', 'close', 'campaigns', 'switch
                 class="mt-2 w-full cursor-pointer rounded-lg border border-white/25 bg-white/10 px-2 py-1.5 text-sm font-bold text-white outline-none hover:bg-white/15 focus:border-accent disabled:opacity-60"
                 @change="emit('switch-store', Number($event.target.value))"
             >
-                <option v-for="s in stores" :key="s.id" :value="s.id" class="text-stone-900">{{ s.name }}</option>
+                <option v-for="s in stores" :key="s.id" :value="s.id" class="bg-surface font-normal text-stone-900">{{ s.name }}</option>
             </select>
         </div>
 
