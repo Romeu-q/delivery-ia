@@ -23,7 +23,13 @@ Stack: PHP 8.4 · Laravel 13 · MySQL 8 · Vue 3 (Vite + Tailwind) · Chart.js �
 - **Ação com IA**: "crie uma campanha para clientes que não compram há mais de 30 dias" → o backend
   identifica o público, salva como rascunho e a IA escreve a mensagem.
 - **Detecção de anomalias** (dias fora do padrão) e alertas automáticos no topo da tela.
-- Memória da conversa, histórico, sugestões de perguntas, indicadores do mês.
+- **"Ver dados consultados"**: cada resposta mostra, em tabelas, exatamente o que veio do banco.
+- **Sugestões de próxima pergunta** escolhidas pelas consultas feitas (regras fixas, sem custo de IA).
+- Painel com os **rascunhos de campanha**, botão de copiar mensagem/resposta, "tentar novamente" após erro
+  e Esc para interromper.
+- **Modo claro/escuro** (segue o sistema, com escolha salva) e paleta da identidade Prefiro Delivery.
+- Base fictícia **renovada diariamente** (agendador do Laravel), para "hoje" e "este mês" sempre terem pedidos.
+- Memória da conversa, histórico, sugestões iniciais, indicadores do mês.
 - Tokens, custo (US$) e latência por resposta e consolidados do dia; logs estruturados.
 - **Fallback entre modelos**, rate limit, cache dos resultados analíticos, testes automatizados.
 - Estrutura preparada para **múltiplos estabelecimentos** (`store_id` em todas as tabelas de negócio).

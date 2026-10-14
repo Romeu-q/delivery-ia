@@ -20,7 +20,7 @@ const cards = computed(() => {
 </script>
 
 <template>
-    <section v-if="dashboard" class="border-b border-stone-200 bg-white px-4 py-3 md:px-6">
+    <section v-if="dashboard" class="border-b border-stone-200 bg-surface px-4 py-3 md:px-6">
         <div class="mb-2 flex items-baseline justify-between gap-2">
             <h2 class="text-xs font-medium uppercase tracking-wide text-stone-500">Este mês até agora</h2>
             <span class="text-xs text-stone-400">vs. mesmos dias do mês passado</span>

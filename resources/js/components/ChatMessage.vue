@@ -41,7 +41,7 @@ const verification = computed(() => meta.value.verification);
 
 <template>
     <div v-if="message.role === 'user'" class="flex justify-end">
-        <div class="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-stone-800 px-4 py-2.5 text-sm text-white md:max-w-[70%]">
+        <div class="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-brand-500 px-4 py-2.5 text-sm text-white md:max-w-[70%]">
             {{ message.content }}
         </div>
     </div>
@@ -65,7 +65,7 @@ const verification = computed(() => meta.value.verification);
 
             <div
                 v-if="message.content"
-                class="prose-answer rounded-2xl rounded-tl-sm border border-stone-200 bg-white px-4 py-3 text-sm leading-relaxed text-stone-700"
+                class="prose-answer rounded-2xl rounded-tl-sm border border-stone-200 bg-surface px-4 py-3 text-sm leading-relaxed text-stone-700"
                 :class="{ 'typing-cursor': streaming }"
                 v-html="html"
             ></div>
@@ -83,7 +83,7 @@ const verification = computed(() => meta.value.verification);
                 <button
                     v-if="isLast && !busy"
                     type="button"
-                    class="rounded-md border border-red-300 bg-white px-2 py-0.5 text-xs font-medium hover:bg-red-100"
+                    class="rounded-md border border-red-300 bg-surface px-2 py-0.5 text-xs font-medium hover:bg-red-100"
                     @click="emit('retry')"
                 >Tentar novamente</button>
             </div>
@@ -129,7 +129,7 @@ const verification = computed(() => meta.value.verification);
                     v-for="s in meta.followups"
                     :key="s"
                     type="button"
-                    class="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs text-stone-600 hover:border-brand-500 hover:text-brand-700"
+                    class="rounded-full border border-stone-200 bg-surface px-3 py-1 text-xs text-stone-600 hover:border-brand-500 hover:text-brand-700"
                     @click="emit('ask', s)"
                 >{{ s }}</button>
             </div>

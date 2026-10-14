@@ -70,6 +70,8 @@ class ChatTest extends TestCase
         $this->assertStringContainsString('event: tool', $stream);
         $this->assertStringContainsString('event: delta', $stream);
         $this->assertStringContainsString('event: done', $stream);
+        // O evento final leva o status para o front exibir selo de verificação e ações
+        $this->assertStringContainsString('"status":"ok"', $stream);
 
         $answer = Message::query()->where('role', 'assistant')->sole();
         $this->assertSame('Você faturou **R$ 55,00** em 1 pedido este mês.', $answer->content);

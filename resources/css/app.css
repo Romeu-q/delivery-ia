@@ -3,14 +3,77 @@
 @source '../../storage/framework/views/*.php';
 @source '../js/**/*.vue';
 
+/* Tema escuro ativado pela classe .dark no <html> (escolha do usuário ou preferência do sistema) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Paleta da Prefiro Delivery (variáveis do site oficial): roxo #5448c2 como primária,
+ * turquesa #46f5e0 como destaque, texto #343434 e fonte DM Sans.
+ * Os componentes usam só estes tokens; o modo escuro redefine os valores mais abaixo,
+ * então nenhum componente precisa de classes duplicadas "dark:".
+ */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-    --color-brand-50: #fff4ed;
-    --color-brand-100: #ffe6d4;
-    --color-brand-500: #f2622e;
-    --color-brand-600: #e14a17;
-    --color-brand-700: #b93812;
+    --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+
+    --color-brand-50: #eff2fe;
+    --color-brand-100: #e2e7fd;
+    --color-brand-500: #5448c2;
+    --color-brand-600: #40389b;
+    --color-brand-700: #38347b;
+    --color-accent: #46f5e0;
+
+    /* Superfícies (cartões, barras) */
+    --color-surface: #ffffff;
+
+    /* Neutros frios, alinhados ao site (#f8f9fb de fundo, #5e5e5e e #343434 de texto) */
+    --color-stone-50: #f8f9fb;
+    --color-stone-100: #f1f2f7;
+    --color-stone-200: #e4e6ee;
+    --color-stone-300: #d1d5db;
+    --color-stone-400: #9a9cab;
+    --color-stone-500: #6b6c70;
+    --color-stone-600: #5e5e5e;
+    --color-stone-700: #464646;
+    --color-stone-800: #343434;
+    --color-stone-900: #1a1a2e;
+}
+
+.dark {
+    color-scheme: dark;
+
+    --color-brand-50: #221e48;
+    --color-brand-100: #2e2866;
+    --color-brand-500: #6d6de7;
+    --color-brand-600: #8990f0;
+    --color-brand-700: #abb6f6;
+
+    --color-surface: #1c1a33;
+
+    /* Escala invertida: 50 = fundo mais escuro, 900 = texto mais claro */
+    --color-stone-50: #13111f;
+    --color-stone-100: #24213d;
+    --color-stone-200: #312d4f;
+    --color-stone-300: #423e66;
+    --color-stone-400: #8b88a6;
+    --color-stone-500: #a7a4c0;
+    --color-stone-600: #c2c0d6;
+    --color-stone-700: #d9d7e8;
+    --color-stone-800: #e9e7f5;
+    --color-stone-900: #f6f5fc;
+
+    --color-red-50: #3a1621;
+    --color-red-100: #4a1c29;
+    --color-red-200: #6b2a38;
+    --color-red-300: #7f3343;
+    --color-red-600: #f87171;
+    --color-red-700: #fca5a5;
+    --color-amber-50: #352a10;
+    --color-amber-100: #463813;
+    --color-amber-200: #6b5418;
+    --color-amber-700: #fcd34d;
+    --color-amber-800: #fde68a;
+    --color-emerald-600: #34d399;
+    --color-emerald-700: #6ee7b7;
 }
 
 /* Conteúdo markdown das respostas da IA */
@@ -21,7 +84,8 @@
 .prose-answer ol { list-style: decimal; }
 .prose-answer li { margin: 0.15rem 0; }
 .prose-answer strong { font-weight: 600; color: var(--color-stone-900); }
-.prose-answer h1, .prose-answer h2, .prose-answer h3 { font-weight: 600; margin: 0.75rem 0 0.35rem; }
+.prose-answer h1, .prose-answer h2, .prose-answer h3 { font-weight: 600; margin: 0.75rem 0 0.35rem; color: var(--color-stone-900); }
+.prose-answer hr { border-color: var(--color-stone-200); margin: 0.75rem 0; }
 .prose-answer code { font-size: 0.85em; background: var(--color-stone-100); padding: 0.1rem 0.3rem; border-radius: 0.25rem; }
 .prose-answer table { font-size: 0.875rem; margin: 0.5rem 0; border-collapse: collapse; }
 .prose-answer th, .prose-answer td { border: 1px solid var(--color-stone-200); padding: 0.25rem 0.5rem; text-align: left; }

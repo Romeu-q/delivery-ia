@@ -1,4 +1,8 @@
 <script setup>
+import { useTheme } from '../composables/useTheme';
+
+const { theme, toggle } = useTheme();
+
 defineProps({
     storeName: { type: String, default: '' },
     conversations: { type: Array, default: () => [] },
@@ -9,16 +13,20 @@ const emit = defineEmits(['new', 'open', 'delete', 'close', 'campaigns']);
 </script>
 
 <template>
-    <aside class="flex h-full w-72 flex-col border-r border-stone-200 bg-white">
-        <div class="flex items-center justify-between px-4 pt-4 pb-3">
+    <aside class="flex h-full w-72 flex-col border-r border-stone-200 bg-surface">
+        <!-- Degradê roxo da identidade Prefiro, com detalhe em turquesa -->
+        <div class="flex items-center justify-between bg-gradient-to-br from-[#5448c2] via-[#40389b] to-[#38347b] px-4 pt-4 pb-4 text-white">
             <div>
-                <div class="text-xs uppercase tracking-wide text-stone-400">Assistente de Performance</div>
-                <div class="font-semibold text-stone-900">{{ storeName || '…' }}</div>
+                <div class="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-white/75">
+                    <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+                    Assistente de Performance
+                </div>
+                <div class="mt-0.5 font-bold">{{ storeName || '…' }}</div>
             </div>
-            <button type="button" class="text-stone-400 hover:text-stone-700 md:hidden" aria-label="Fechar menu" @click="emit('close')">✕</button>
+            <button type="button" class="text-white/70 hover:text-white md:hidden" aria-label="Fechar menu" @click="emit('close')">✕</button>
         </div>
 
-        <div class="px-3">
+        <div class="px-3 pt-3">
             <button
                 type="button"
                 class="w-full rounded-lg border border-stone-200 px-3 py-2 text-left text-sm font-medium text-stone-700 hover:bg-stone-50"
@@ -52,10 +60,18 @@ const emit = defineEmits(['new', 'open', 'delete', 'close', 'campaigns']);
             </ul>
         </nav>
 
-        <div v-if="usage" class="border-t border-stone-100 px-4 py-3 text-xs text-stone-500">
-            <div class="mb-1 font-medium text-stone-600">Consumo de IA hoje</div>
-            <div>{{ usage.today.answers }} respostas · {{ Number(usage.today.prompt_tokens) + Number(usage.today.output_tokens) }} tokens</div>
-            <div>US$ {{ Number(usage.today.cost_usd).toFixed(4) }} · média {{ ((usage.today.avg_latency_ms || 0) / 1000).toFixed(1) }}s</div>
+        <div class="border-t border-stone-100 px-4 py-3 text-xs text-stone-500">
+            <template v-if="usage">
+                <div class="mb-1 font-medium text-stone-600">Consumo de IA hoje</div>
+                <div>{{ usage.today.answers }} respostas · {{ Number(usage.today.prompt_tokens) + Number(usage.today.output_tokens) }} tokens</div>
+                <div>US$ {{ Number(usage.today.cost_usd).toFixed(4) }} · média {{ ((usage.today.avg_latency_ms || 0) / 1000).toFixed(1) }}s</div>
+            </template>
+            <button
+                type="button"
+                class="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-stone-200 px-3 py-1.5 text-stone-600 hover:bg-stone-100"
+                :aria-label="theme === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'"
+                @click="toggle"
+            >{{ theme === 'dark' ? '☀️ Tema claro' : '🌙 Tema escuro' }}</button>
         </div>
     </aside>
 </template>

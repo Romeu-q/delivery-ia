@@ -229,7 +229,7 @@ class DeliveryDemoSeeder extends Seeder
         $monthsAgo = ($now->year - $day->year) * 12 + ($now->month - $day->month);
 
         if ($monthsAgo === 0) {
-            return 1.12 * 0.78;
+            return 1.12 * 0.86;
         }
 
         $factor = 1.12 - ($monthsAgo - 1) * 0.045;

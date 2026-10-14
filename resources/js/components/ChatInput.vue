@@ -37,7 +37,7 @@ defineExpose({ focus: () => textarea.value?.focus() });
 </script>
 
 <template>
-    <form class="flex items-end gap-2 rounded-2xl border border-stone-300 bg-white p-2 shadow-sm focus-within:border-brand-500" @submit.prevent="submit">
+    <form class="flex items-end gap-2 rounded-2xl border border-stone-300 bg-surface p-2 shadow-sm focus-within:border-brand-500" @submit.prevent="submit">
         <textarea
             ref="textarea"
             v-model="text"

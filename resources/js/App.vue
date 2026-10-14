@@ -100,7 +100,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
         <div v-if="sidebarOpen" class="fixed inset-0 z-20 bg-black/30 md:hidden" @click="sidebarOpen = false"></div>
 
         <main class="flex min-w-0 flex-1 flex-col">
-            <header class="flex items-center gap-3 border-b border-stone-200 bg-white px-4 py-2 md:hidden">
+            <header class="flex items-center gap-3 border-b border-stone-200 bg-surface px-4 py-2 md:hidden">
                 <button type="button" class="text-stone-600" aria-label="Abrir menu" @click="sidebarOpen = true">☰</button>
                 <span class="truncate text-sm font-semibold">{{ dashboard?.store?.name || 'Assistente' }}</span>
             </header>
@@ -120,7 +120,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
                                 v-for="s in dashboard?.suggestions || []"
                                 :key="s"
                                 type="button"
-                                class="rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-700 hover:border-brand-500 hover:text-brand-700"
+                                class="rounded-xl border border-stone-200 bg-surface px-4 py-3 text-sm text-stone-700 hover:border-brand-500 hover:text-brand-700"
                                 @click="ask(s)"
                             >{{ s }}</button>
                         </div>

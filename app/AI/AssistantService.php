@@ -148,6 +148,8 @@ class AssistantService
         $message = $conversation->messages()->create([
             'role' => 'assistant',
             'content' => $answer,
+            // Explícito: o default do banco não é carregado no model recém-criado (e o front depende dele)
+            'status' => 'ok',
             'meta' => array_filter([
                 'tools' => $toolLog,
                 'charts' => $charts,

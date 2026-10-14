@@ -48,7 +48,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
 
 <template>
     <div class="fixed inset-0 z-40 flex items-end justify-center bg-black/30 p-0 sm:items-center sm:p-4" @click.self="emit('close')">
-        <div role="dialog" aria-modal="true" aria-labelledby="campaigns-title" class="flex max-h-[85dvh] w-full max-w-2xl flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl">
+        <div role="dialog" aria-modal="true" aria-labelledby="campaigns-title" class="flex max-h-[85dvh] w-full max-w-2xl flex-col rounded-t-2xl bg-surface shadow-xl sm:rounded-2xl">
             <header class="flex items-center justify-between border-b border-stone-100 px-5 py-3">
                 <div>
                     <h2 id="campaigns-title" class="font-semibold text-stone-900">Campanhas (rascunhos)</h2>
