@@ -8,7 +8,9 @@ parametrizadas no MySQL e devolve os números já calculados, e a IA interpreta 
 - **Aplicação:** https://delivery-ia-production.up.railway.app
 - **Repositório:** https://github.com/Romeu-q/delivery-ia
 
-### Acesso para avaliação
+**Sumário:** [Acesso](#acesso-para-avaliação) · [Funcionalidades](#funcionalidades) · [Instalação](#instalação-local) · [Arquitetura](#arquitetura) · [Modelo de IA](#modelo-de-ia) · [Estratégia](#estratégia-da-pergunta-aos-dados) · [Perguntas obrigatórias](#perguntas-obrigatórias) · [Segurança](#segurança--resumo)
+
+## Acesso para avaliação
 
 - **Não há login**: basta abrir a URL. Cada visitante recebe uma sessão anônima e vê só as próprias conversas.
 - **Seletor de loja** no topo da barra lateral: 3 estabelecimentos fictícios com momentos diferentes
@@ -25,28 +27,16 @@ Stack: PHP 8.4 · Laravel 13 · MySQL 8 · Vue 3 (Vite + Tailwind) · Chart.js �
 
 ## Funcionalidades
 
-- Chat em linguagem natural com **resposta em streaming** (o texto aparece enquanto é gerado).
-- **Function calling**: 11 ferramentas de consulta + 1 ação (rascunho de campanha).
-- **Comparação automática entre períodos** ("este mês" é comparado com os mesmos dias do mês anterior).
-- **Gráficos gerados dinamicamente** a partir dos dados do banco retornados pelas ferramentas.
-- **Verificação dos números**: cada número da resposta é conferido contra os dados do banco; a interface
-  mostra "✓ N números conferidos" ou sinaliza os que não foram encontrados.
-- **Ação com IA**: "crie uma campanha para clientes que não compram há mais de 30 dias" → o backend
-  identifica o público, salva como rascunho e a IA escreve a mensagem.
-- **Detecção de anomalias** (dias fora do padrão) e alertas automáticos no topo da tela.
-- **"Ver dados consultados"**: cada resposta mostra, em tabelas, exatamente o que veio do banco.
-- **Sugestões de próxima pergunta** escolhidas pelas consultas feitas (regras fixas, sem custo de IA).
-- Painel com os **rascunhos de campanha**, botão de copiar mensagem/resposta, "tentar novamente" após erro
-  e Esc para interromper.
-- **Modo claro/escuro** (segue o sistema, com escolha salva) e paleta da identidade Prefiro Delivery.
-- Base fictícia **renovada diariamente** (agendador do Laravel), para "hoje" e "este mês" sempre terem pedidos.
-- Memória da conversa, histórico, sugestões iniciais, indicadores do mês.
-- Tokens, custo (US$) e latência por resposta e consolidados do dia; logs estruturados.
-- **Fallback entre modelos**, rate limit, cache dos resultados analíticos, testes automatizados.
-- **Três estabelecimentos** com perfis diferentes (em queda, crescendo e estável) e seletor de loja na tela.
-  A loja escolhida é validada e guardada na sessão pelo servidor; a IA nunca recebe nem escolhe a loja,
-  e todas as consultas, conversas, campanhas e caches são isolados por `store_id`.
-- Novas tentativas com espera crescente em falhas temporárias do provedor (429/503) antes do fallback de modelo.
+- **Chat em streaming** com IA real (Gemini) e **function calling**: 11 consultas + 1 ação.
+- **Números sempre do banco**: variações calculadas no backend e **verificação automática** de cada número citado
+  ("✓ N números conferidos"); **ver dados consultados** mostra as tabelas usadas na resposta.
+- **Comparação entre períodos** ("este mês" vs. mesmos dias do mês anterior) e **detecção de anomalias**.
+- **Gráficos dinâmicos** gerados com os dados das consultas, não com números da IA.
+- **Ação com IA**: rascunho de campanha com público calculado pelo backend e texto escrito pela IA.
+- **3 lojas** isoladas por `store_id`; a loja vem da sessão (servidor), nunca da IA.
+- Memória da conversa, histórico, sugestões de próxima pergunta, modo claro/escuro.
+- Tokens, custo e latência por resposta; logs; cache; rate limit; novas tentativas e **fallback entre modelos**.
+- Docker, testes automatizados e base fictícia renovada diariamente.
 
 ---
 
