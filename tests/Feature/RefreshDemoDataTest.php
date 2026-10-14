@@ -18,7 +18,7 @@ class RefreshDemoDataTest extends TestCase
         $this->travelTo(CarbonImmutable::parse('2026-03-01 21:00:00'));
         $this->artisan('demo:refresh --force')->assertSuccessful();
 
-        $store = Store::query()->sole();
+        $store = Store::query()->where('slug', 'sabor-da-vila')->sole();
         Conversation::query()->create(['store_id' => $store->id, 'visitor_id' => 'v1', 'title' => 'Minha conversa']);
 
         // Dias depois, a base está velha: a renovação repõe os pedidos até a nova data
@@ -26,7 +26,7 @@ class RefreshDemoDataTest extends TestCase
         $this->artisan('demo:refresh --if-stale')->assertSuccessful();
 
         $this->assertSame('2026-03-20', substr(DB::table('orders')->max('ordered_at'), 0, 10));
-        $this->assertSame(1, Store::query()->count());
+        $this->assertSame(3, Store::query()->count()); // renovar não duplica as lojas
         $this->assertSame(1, Conversation::query()->count());
         $this->assertGreaterThan(500, DB::table('orders')->count());
     }

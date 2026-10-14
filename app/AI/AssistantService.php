@@ -198,31 +198,40 @@ class AssistantService
     }
 
     /**
-     * Tenta os modelos configurados em ordem. Só troca de modelo se a falha ocorrer
-     * ANTES de qualquer texto ter sido enviado ao usuário (senão a resposta ficaria duplicada).
+     * Resiliência a falhas temporárias do provedor (429 / 503 "alta demanda" / timeout):
+     *  1. tenta de novo o mesmo modelo após uma espera crescente (backoff);
+     *  2. persistindo, passa para o próximo modelo da lista (fallback).
+     * Só repete se a falha ocorrer ANTES de qualquer texto ter ido ao usuário (senão a resposta duplicaria).
      */
     private function generate(array $payload, callable $onText): GeminiResponse
     {
         $models = config('ai.models');
+        $retries = config('ai.retries_per_model');
         $streamed = false;
         $tracked = function (string $text) use (&$streamed, $onText) {
             $streamed = true;
             $onText($text);
         };
+        $lastError = new AiProviderException('Nenhum modelo de IA configurado.');
 
-        foreach ($models as $index => $model) {
-            try {
-                return $this->gemini->stream($model, $payload, $tracked);
-            } catch (AiProviderException $e) {
-                $hasNext = $index < count($models) - 1;
-                if (! $e->retryable || $streamed || ! $hasNext) {
-                    throw $e;
+        foreach ($models as $model) {
+            for ($attempt = 0; $attempt <= $retries; $attempt++) {
+                if ($attempt > 0) {
+                    usleep(config('ai.retry_delay_ms') * $attempt * 1000);
                 }
-                Log::warning('ai.fallback', ['from' => $model, 'to' => $models[$index + 1], 'reason' => $e->getMessage()]);
+                try {
+                    return $this->gemini->stream($model, $payload, $tracked);
+                } catch (AiProviderException $e) {
+                    if (! $e->retryable || $streamed) {
+                        throw $e;
+                    }
+                    $lastError = $e;
+                    Log::warning('ai.retry', ['model' => $model, 'attempt' => $attempt + 1, 'reason' => $e->getMessage()]);
+                }
             }
         }
 
-        throw new AiProviderException('Nenhum modelo de IA configurado.');
+        throw $lastError;
     }
 
     private function payload(Conversation $conversation, CarbonImmutable $now, array $contents, bool $lastRound): array

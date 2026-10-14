@@ -14,6 +14,9 @@ const dashboard = ref(null);
 const usage = ref(null);
 const sidebarOpen = ref(false);
 const campaignsOpen = ref(false);
+const stores = ref([]);
+const storeId = ref(null);
+const switching = ref(false);
 const scroller = ref(null);
 const input = ref(null);
 
@@ -22,6 +25,31 @@ async function loadDashboard() {
         dashboard.value = await api.dashboard();
     } catch {
         dashboard.value = null;
+    }
+}
+
+async function loadStores() {
+    try {
+        const res = await api.stores();
+        stores.value = res.data;
+        storeId.value = res.current_id;
+    } catch {
+        stores.value = [];
+    }
+}
+
+/** Troca de loja: o servidor valida e guarda na sessão; a tela recarrega dados e conversas da nova loja. */
+async function switchStore(id) {
+    if (state.loading || id === storeId.value) return;
+    switching.value = true;
+    try {
+        await api.selectStore(id);
+        storeId.value = id;
+        sidebarOpen.value = false;
+        newConversation();
+        await Promise.all([loadDashboard(), refreshConversations()]);
+    } finally {
+        switching.value = false;
     }
 }
 
@@ -71,6 +99,7 @@ function openCampaigns() {
 
 onMounted(() => {
     window.addEventListener('keydown', onKeydown);
+    loadStores();
     loadDashboard();
     loadUsage();
     refreshConversations();
@@ -86,7 +115,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
         >
             <Sidebar
-                :store-name="dashboard?.store?.name"
+                :stores="stores"
+                :store-id="storeId"
+                :switching="switching"
                 :conversations="state.conversations"
                 :active-id="state.conversationId"
                 :usage="usage"
@@ -95,6 +126,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
                 @delete="deleteConversation"
                 @close="sidebarOpen = false"
                 @campaigns="openCampaigns"
+                @switch-store="switchStore"
             />
         </div>
         <div v-if="sidebarOpen" class="fixed inset-0 z-20 bg-black/30 md:hidden" @click="sidebarOpen = false"></div>

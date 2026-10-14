@@ -65,6 +65,37 @@ class DeliveryDemoSeeder extends Seeder
     /** Multiplicador de volume por dia da semana (ISO: 1 = segunda). */
     private const WEEKDAY_FACTOR = [1 => 0.72, 2 => 0.80, 3 => 0.90, 4 => 1.00, 5 => 1.30, 6 => 1.45, 7 => 1.25];
 
+    /**
+     * Três lojas com perfis diferentes (cardápio, porte e momento), para mostrar o isolamento
+     * por store_id e dar à IA cenários distintos para interpretar.
+     *  - volume: multiplicador de pedidos/dia;
+     *  - current_month: fator do mês atual vs. tendência (< 1 queda, > 1 crescimento);
+     *  - lunch_share: % de pedidos no almoço [dia útil, fim de semana].
+     */
+    private const STORES = [
+        [
+            'slug' => 'sabor-da-vila', 'name' => 'Sabor da Vila Delivery', 'customers' => 420,
+            'categories' => null, 'volume' => 1.0, 'current_month' => 0.86, 'lunch_share' => [46, 32],
+        ],
+        [
+            'slug' => 'forno-di-napoli', 'name' => 'Pizzaria Forno di Napoli', 'customers' => 520,
+            'categories' => ['Pizzas', 'Porções', 'Bebidas', 'Sobremesas'],
+            'volume' => 1.25, 'current_month' => 1.12, 'lunch_share' => [8, 12],
+        ],
+        [
+            'slug' => 'verde-vida', 'name' => 'Verde Vida Saudável', 'customers' => 260,
+            'categories' => ['Saudável', 'Bebidas', 'Sobremesas'],
+            'volume' => 0.7, 'current_month' => 1.0, 'lunch_share' => [62, 45],
+        ],
+    ];
+
+    /** IDs são atribuídos aqui (inserção em lote), contínuos entre as lojas. */
+    private int $nextProductId = 0;
+
+    private int $nextCustomerId = 0;
+
+    private int $nextOrderId = 0;
+
     public function run(): void
     {
         mt_srand(self::SEED);
@@ -72,21 +103,45 @@ class DeliveryDemoSeeder extends Seeder
         $faker->seed(self::SEED);
 
         $now = CarbonImmutable::now();
+        $totals = [0, 0];
+
+        foreach (self::STORES as $profile) {
+            [$orders, $items] = $this->seedStore($profile, $faker, $now);
+            $totals[0] += $orders;
+            $totals[1] += $items;
+        }
+
+        // Datas de primeiro/último pedido calculadas a partir dos pedidos reais
+        DB::statement('
+            UPDATE customers c
+            JOIN (SELECT customer_id, MIN(ordered_at) AS first_at, MAX(ordered_at) AS last_at
+                  FROM orders GROUP BY customer_id) o ON o.customer_id = c.id
+            SET c.first_order_at = o.first_at, c.last_order_at = o.last_at
+        ');
+        DB::table('customers')->whereNull('first_order_at')->delete();
+
+        $this->command?->info(sprintf('Seed concluído: %d lojas, %d pedidos, %d itens, %d clientes.',
+            count(self::STORES), $totals[0], $totals[1], DB::table('customers')->count()));
+    }
+
+    /** @return array{0: int, 1: int} pedidos e itens gerados */
+    private function seedStore(array $profile, $faker, CarbonImmutable $now): array
+    {
         $start = $now->startOfDay()->subDays(self::HISTORY_DAYS);
 
         // Reaproveita a loja se já existir: a renovação diária troca só pedidos, clientes e produtos
-        $store = Store::query()->firstOrCreate(['slug' => 'sabor-da-vila'], ['name' => 'Sabor da Vila Delivery']);
+        $store = Store::query()->firstOrCreate(['slug' => $profile['slug']], ['name' => $profile['name']]);
 
-        $products = $this->seedProducts($store->id, $now);
-        $customers = $this->buildCustomers($store->id, $faker, $start, $now);
+        $products = $this->seedProducts($store->id, $now, $profile['categories']);
+        $customers = $this->buildCustomers($faker, $start, $now, $profile['customers']);
 
         $orders = [];
         $items = [];
-        $orderId = 0;
 
         for ($day = $start; $day->lte($now); $day = $day->addDay()) {
             $expected = self::BASE_ORDERS_PER_DAY
-                * $this->trendFactor($day, $now)
+                * $profile['volume']
+                * $this->trendFactor($day, $now, $profile['current_month'])
                 * self::WEEKDAY_FACTOR[$day->dayOfWeekIso];
             $count = max(0, (int) round($expected + $this->noise() * sqrt($expected)));
 
@@ -99,13 +154,13 @@ class DeliveryDemoSeeder extends Seeder
             }
 
             for ($i = 0; $i < $count; $i++) {
-                $orderedAt = $this->randomTime($day);
+                $orderedAt = $this->randomTime($day, $profile['lunch_share']);
                 if ($orderedAt->gt($now)) {
                     continue;
                 }
 
                 $customer = $this->weightedPick($active);
-                $orderId++;
+                $orderId = ++$this->nextOrderId;
                 [$lineItems, $subtotal] = $this->buildItems($orderId, $products, $orderedAt, $now);
 
                 $discount = 0.0;
@@ -148,25 +203,19 @@ class DeliveryDemoSeeder extends Seeder
             DB::table('order_items')->insert($chunk);
         }
 
-        // Datas de primeiro/último pedido calculadas a partir dos pedidos reais
-        DB::statement('
-            UPDATE customers c
-            JOIN (SELECT customer_id, MIN(ordered_at) AS first_at, MAX(ordered_at) AS last_at
-                  FROM orders GROUP BY customer_id) o ON o.customer_id = c.id
-            SET c.first_order_at = o.first_at, c.last_order_at = o.last_at
-        ');
-        DB::table('customers')->whereNull('first_order_at')->delete();
-
-        $this->command?->info(sprintf('Seed concluído: %d pedidos, %d itens, %d clientes.',
-            count($orders), count($items), DB::table('customers')->count()));
+        return [count($orders), count($items)];
     }
 
-    private function seedProducts(int $storeId, CarbonImmutable $now): array
+    /** Cardápio da loja: o menu completo ou só as categorias do perfil. */
+    private function seedProducts(int $storeId, CarbonImmutable $now, ?array $categories): array
     {
         $products = [];
-        foreach (self::MENU as $i => [$name, $category, $price, $meal]) {
+        foreach (self::MENU as [$name, $category, $price, $meal]) {
+            if ($categories !== null && ! in_array($category, $categories, true)) {
+                continue;
+            }
             $products[] = [
-                'id' => $i + 1,
+                'id' => ++$this->nextProductId,
                 'store_id' => $storeId,
                 'name' => $name,
                 'category' => $category,
@@ -174,23 +223,24 @@ class DeliveryDemoSeeder extends Seeder
                 'active' => true,
                 'created_at' => $now,
                 'updated_at' => $now,
+                'meal' => $meal,
             ];
         }
-        DB::table('products')->insert($products);
+        DB::table('products')->insert(array_map(fn ($p) => array_diff_key($p, ['meal' => true]), $products));
 
-        return array_map(fn ($p, $menu) => $p + ['meal' => $menu[3]], $products, self::MENU);
+        return $products;
     }
 
     /**
      * Clientes com data de entrada (aquisição ao longo do tempo), peso de frequência
      * (poucos clientes compram muito) e, para alguns, data em que pararam de comprar.
      */
-    private function buildCustomers(int $storeId, $faker, CarbonImmutable $start, CarbonImmutable $now): array
+    private function buildCustomers($faker, CarbonImmutable $start, CarbonImmutable $now, int $total): array
     {
         $customers = [];
-        $total = 420;
 
-        for ($id = 1; $id <= $total; $id++) {
+        for ($n = 1; $n <= $total; $n++) {
+            $id = ++$this->nextCustomerId;
             // 35% já existiam no início; os demais chegam ao longo do período
             $joined = $this->chance(0.35)
                 ? $start
@@ -224,12 +274,12 @@ class DeliveryDemoSeeder extends Seeder
     }
 
     /** Tendência mensal: crescimento até o mês passado, pico em dezembro e queda no mês atual. */
-    private function trendFactor(CarbonImmutable $day, CarbonImmutable $now): float
+    private function trendFactor(CarbonImmutable $day, CarbonImmutable $now, float $currentMonth): float
     {
         $monthsAgo = ($now->year - $day->year) * 12 + ($now->month - $day->month);
 
         if ($monthsAgo === 0) {
-            return 1.12 * 0.86;
+            return 1.12 * $currentMonth;
         }
 
         $factor = 1.12 - ($monthsAgo - 1) * 0.045;
@@ -273,6 +323,11 @@ class DeliveryDemoSeeder extends Seeder
             $mains = mt_rand(1, 100) <= 60 ? 1 : (mt_rand(1, 100) <= 80 ? 2 : 3);
         }
 
+        // Lojas de cardápio reduzido (ex.: pizzaria no almoço): qualquer prato principal do cardápio
+        if ($pool === []) {
+            $pool = $byMeal(['lunch', 'dinner', 'any']);
+        }
+
         for ($i = 0; $i < $mains; $i++) {
             $lines[] = $pool[mt_rand(0, count($pool) - 1)];
         }
@@ -310,11 +365,11 @@ class DeliveryDemoSeeder extends Seeder
     }
 
     /** Almoço (11h–14h) e jantar (18h–23h) concentram os pedidos; fim de semana puxa para o jantar. */
-    private function randomTime(CarbonImmutable $day): CarbonImmutable
+    private function randomTime(CarbonImmutable $day, array $lunchShares): CarbonImmutable
     {
         $weekend = $day->dayOfWeekIso >= 5;
         $roll = mt_rand(1, 100);
-        $lunchShare = $weekend ? 32 : 46;
+        $lunchShare = $weekend ? $lunchShares[1] : $lunchShares[0];
 
         if ($roll <= $lunchShare) {
             $minutes = $this->bell(11 * 60, 14 * 60, 12 * 60 + 15);

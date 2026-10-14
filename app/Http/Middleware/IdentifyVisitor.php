@@ -21,7 +21,9 @@ class IdentifyVisitor
             $request->session()->put('visitor_id', (string) Str::uuid());
         }
 
-        $store = Store::query()->find(config('app.demo_store_id'));
+        // Loja escolhida pelo visitante (validada no StoreController) ou a loja padrão da demo
+        $store = Store::query()->find($request->session()->get('store_id', config('app.demo_store_id')))
+            ?? Store::query()->orderBy('id')->first();
         abort_unless($store, 503, 'Base de demonstração não encontrada. Rode php artisan migrate --seed.');
 
         $request->attributes->set('store', $store);

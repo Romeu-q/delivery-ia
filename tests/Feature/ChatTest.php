@@ -106,6 +106,18 @@ class ChatTest extends TestCase
         $this->assertSame('ok', $answer->status);
     }
 
+    public function test_retries_the_same_model_after_a_temporary_failure(): void
+    {
+        Http::fakeSequence('*modelo-principal*')
+            ->push(['error' => ['message' => 'high demand']], 503)
+            ->push(self::text('Tudo certo.'));
+
+        $this->post('/api/chat', ['message' => 'Oi'])->streamedContent();
+
+        $this->assertSame('modelo-principal', Message::query()->where('role', 'assistant')->sole()->model);
+        Http::assertSentCount(2);
+    }
+
     public function test_provider_failure_returns_a_friendly_error_event(): void
     {
         Http::fake(['*' => Http::response(['error' => ['message' => 'quota']], 429)]);

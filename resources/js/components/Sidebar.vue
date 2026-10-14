@@ -4,26 +4,38 @@ import { useTheme } from '../composables/useTheme';
 const { theme, toggle } = useTheme();
 
 defineProps({
-    storeName: { type: String, default: '' },
+    stores: { type: Array, default: () => [] },
+    storeId: { type: Number, default: null },
+    switching: { type: Boolean, default: false },
     conversations: { type: Array, default: () => [] },
     activeId: { type: String, default: null },
     usage: { type: Object, default: null },
 });
-const emit = defineEmits(['new', 'open', 'delete', 'close', 'campaigns']);
+const emit = defineEmits(['new', 'open', 'delete', 'close', 'campaigns', 'switch-store']);
 </script>
 
 <template>
     <aside class="flex h-full w-72 flex-col border-r border-stone-200 bg-surface">
         <!-- Degradê roxo da identidade Prefiro, com detalhe em turquesa -->
-        <div class="flex items-center justify-between bg-gradient-to-br from-[#5448c2] via-[#40389b] to-[#38347b] px-4 pt-4 pb-4 text-white">
-            <div>
+        <div class="bg-gradient-to-br from-[#5448c2] via-[#40389b] to-[#38347b] px-4 pt-4 pb-4 text-white">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-white/75">
                     <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
                     Assistente de Performance
                 </div>
-                <div class="mt-0.5 font-bold">{{ storeName || '…' }}</div>
+                <button type="button" class="text-white/70 hover:text-white md:hidden" aria-label="Fechar menu" @click="emit('close')">✕</button>
             </div>
-            <button type="button" class="text-white/70 hover:text-white md:hidden" aria-label="Fechar menu" @click="emit('close')">✕</button>
+            <!-- Troca de estabelecimento: a escolha é validada e guardada na sessão pelo servidor -->
+            <label for="store-select" class="sr-only">Estabelecimento</label>
+            <select
+                id="store-select"
+                :value="storeId"
+                :disabled="switching"
+                class="mt-2 w-full cursor-pointer rounded-lg border border-white/25 bg-white/10 px-2 py-1.5 text-sm font-bold text-white outline-none hover:bg-white/15 focus:border-accent disabled:opacity-60"
+                @change="emit('switch-store', Number($event.target.value))"
+            >
+                <option v-for="s in stores" :key="s.id" :value="s.id" class="text-stone-900">{{ s.name }}</option>
+            </select>
         </div>
 
         <div class="px-3 pt-3">

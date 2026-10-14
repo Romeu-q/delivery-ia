@@ -7,16 +7,17 @@ export class ApiError extends Error {
     }
 }
 
-async function request(method, url) {
+async function request(method, url, body = null) {
     const response = await fetch(url, {
         method,
-        headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
         credentials: 'same-origin',
+        body: body ? JSON.stringify(body) : null,
     });
     if (response.status === 204) return null;
-    const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw new ApiError(body.message || 'Erro ao comunicar com o servidor.', response.status);
-    return body;
+    const json = await response.json().catch(() => ({}));
+    if (!response.ok) throw new ApiError(json.message || 'Erro ao comunicar com o servidor.', response.status);
+    return json;
 }
 
 export const api = {
@@ -26,6 +27,8 @@ export const api = {
     deleteConversation: (id) => request('DELETE', `/api/conversations/${id}`),
     campaigns: () => request('GET', '/api/campaigns'),
     usage: () => request('GET', '/api/usage'),
+    stores: () => request('GET', '/api/stores'),
+    selectStore: (id) => request('POST', '/api/stores/select', { store_id: id }),
 };
 
 /**

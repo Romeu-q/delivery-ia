@@ -32,7 +32,10 @@ Stack: PHP 8.4 · Laravel 13 · MySQL 8 · Vue 3 (Vite + Tailwind) · Chart.js �
 - Memória da conversa, histórico, sugestões iniciais, indicadores do mês.
 - Tokens, custo (US$) e latência por resposta e consolidados do dia; logs estruturados.
 - **Fallback entre modelos**, rate limit, cache dos resultados analíticos, testes automatizados.
-- Estrutura preparada para **múltiplos estabelecimentos** (`store_id` em todas as tabelas de negócio).
+- **Três estabelecimentos** com perfis diferentes (em queda, crescendo e estável) e seletor de loja na tela.
+  A loja escolhida é validada e guardada na sessão pelo servidor; a IA nunca recebe nem escolhe a loja,
+  e todas as consultas, conversas, campanhas e caches são isolados por `store_id`.
+- Novas tentativas com espera crescente em falhas temporárias do provedor (429/503) antes do fallback de modelo.
 
 ---
 
@@ -57,7 +60,7 @@ DB_PASSWORD=
 GEMINI_API_KEY=sua-chave   # gratuita em https://aistudio.google.com/apikey
 ```
 
-Crie o banco e os dados fictícios (≈2.000 pedidos em 14 meses, relativos à data atual):
+Crie o banco e os dados fictícios (3 lojas, ≈6.000 pedidos em 14 meses, relativos à data atual):
 
 ```bash
 mysql -u root -e "CREATE DATABASE delivery_ia CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"

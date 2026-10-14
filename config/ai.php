@@ -15,6 +15,10 @@ return [
         env('GEMINI_FALLBACK_MODEL', 'gemini-3.1-flash-lite'),
     ])),
 
+    // Falhas temporárias (429/503): novas tentativas no mesmo modelo antes do fallback, com espera crescente
+    'retries_per_model' => (int) env('AI_RETRIES_PER_MODEL', 1),
+    'retry_delay_ms' => (int) env('AI_RETRY_DELAY_MS', 1200),
+
     'temperature' => (float) env('AI_TEMPERATURE', 0.2),
     'max_output_tokens' => (int) env('AI_MAX_OUTPUT_TOKENS', 2048),
 
