@@ -62,10 +62,12 @@ final class Period
 
     public function toArray(): array
     {
+        // O fim interno é exclusivo (ex.: 00:00 de amanhã); para exibir, usa o último instante incluído,
+        // senão a IA diz "até 15/10" quando hoje é 14/10
         return [
             'label' => $this->label,
             'start' => $this->start->toDateTimeString(),
-            'end' => $this->end->toDateTimeString(),
+            'end' => $this->end->subSecond()->toDateTimeString(),
         ];
     }
 }

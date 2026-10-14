@@ -14,7 +14,8 @@ class GetTopProducts extends Tool
     public function description(): string
     {
         return 'Ranking dos produtos mais vendidos no período, por faturamento ou quantidade, opcionalmente filtrado '
-            .'por categoria. Use para "qual produto mais vendeu" e "carro-chefe".';
+            .'por categoria. Use para "qual produto mais vendeu" e "carro-chefe". Sem critério explícito do usuário, '
+            .'use sort_by=revenue (itens baratos como bebidas lideram em unidades sem serem o carro-chefe).';
     }
 
     protected function properties(): array

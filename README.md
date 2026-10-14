@@ -8,6 +8,17 @@ parametrizadas no MySQL e devolve os números já calculados, e a IA interpreta 
 - **Aplicação:** https://delivery-ia-production.up.railway.app
 - **Repositório:** https://github.com/Romeu-q/delivery-ia
 
+### Acesso para avaliação
+
+- **Não há login**: basta abrir a URL. Cada visitante recebe uma sessão anônima e vê só as próprias conversas.
+- **Seletor de loja** no topo da barra lateral: 3 estabelecimentos fictícios com momentos diferentes
+  (Sabor da Vila — vendas em queda; Forno di Napoli — crescendo; Verde Vida — estável).
+- Clique numa sugestão ou pergunte livremente. Em cada resposta: **ver dados consultados** mostra o que veio do
+  banco, e o selo **✓ N números conferidos** indica a verificação automática.
+- Ação com IA: *"Crie uma campanha para clientes que não compram há mais de 30 dias"* → os rascunhos ficam em
+  **📣 Campanhas criadas** (nada é enviado).
+- Limites de proteção de custo: 15 perguntas por minuto e 150 por dia por IP.
+
 Stack: PHP 8.4 · Laravel 13 · MySQL 8 · Vue 3 (Vite + Tailwind) · Chart.js · Google Gemini · Docker (FrankenPHP) · Railway.
 
 ---
@@ -121,14 +132,17 @@ Vue ◀── SSE: tool / delta / chart / campaign / done ◀── texto em str
 - `App.vue` — layout (sidebar, indicadores, chat, entrada).
 - `composables/useChat.js` — estado do chat (mensagens, loading, erro, conversa atual) e consumo do stream.
 - `api.js` — chamadas REST e leitura de **Server-Sent Events via `fetch`** (POST; `EventSource` só faz GET).
-- `components/` — `ChatMessage` (markdown sanitizado com DOMPurify, etapas, gráficos, selo de verificação),
-  `ChartBlock` (Chart.js), `CampaignCard`, `KpiBar`, `ChatInput`, `Sidebar`.
+- `composables/useTheme.js` — tema claro/escuro (preferência do sistema + escolha salva).
+- `components/` — `ChatMessage` (markdown sanitizado com DOMPurify, etapas, gráficos, selo de verificação,
+  sugestões), `DataView` (tabelas com os dados consultados), `ChartBlock` (Chart.js), `CampaignCard`,
+  `CampaignsModal`, `KpiBar`, `ChatInput`, `Sidebar` (seletor de loja e tema).
+- `resources/css/app.css` — tokens de cor da paleta Prefiro; o modo escuro redefine os tokens.
 
 ### Back-end (`app/`)
 
 | Camada | Responsabilidade |
 |---|---|
-| `Http/Controllers/Api` | Controllers finos: chat (SSE), conversas, dashboard, campanhas, uso. |
+| `Http/Controllers/Api` | Controllers finos: chat (SSE), conversas, dashboard, campanhas, uso e troca de loja (`StoreController`). |
 | `Http/Requests/ChatRequest` | Validação e saneamento da pergunta (tamanho, caracteres de controle, UUID). |
 | `Http/Middleware/IdentifyVisitor` | Visitante anônimo por sessão (isola conversas) e loja atual resolvida no servidor. |
 | `AI/AssistantService` | Orquestra o loop modelo → ferramentas → modelo, streaming, fallback, custo, persistência. |
@@ -136,6 +150,8 @@ Vue ◀── SSE: tool / delta / chart / campaign / done ◀── texto em str
 | `AI/Tools/*` | Uma classe por ferramenta: descrição, JSON Schema, regras de validação e execução. |
 | `AI/NumberGuard` | Confere cada número da resposta contra os resultados das ferramentas. |
 | `AI/SystemPrompt` | Regras de comportamento, formato e segurança. |
+| `AI/FollowUpSuggestions` | Sugestões de próxima pergunta conforme as ferramentas usadas (sem custo de IA). |
+| `Console/Commands/RefreshDemoData` | `demo:refresh`: regera a base fictícia (agendado diariamente em `routes/console.php`). |
 | `Analytics/SalesAnalytics` | **Todas** as consultas SQL (query builder com bindings), sempre filtradas por loja. |
 | `Analytics/PeriodResolver` | Converte períodos permitidos (`this_month`, `last_30_days`…) em datas e define o período de comparação. |
 
@@ -308,7 +324,7 @@ viram novas ferramentas). Em produção acrescentaria: usuário autenticado, pol
 
 ### 10. O que faria diferente se tivesse mais tempo?
 
-- Autenticação e perfis por estabelecimento (hoje a demo usa uma loja e visitantes anônimos).
+- Autenticação e perfis por estabelecimento (hoje a demo tem 3 lojas escolhidas livremente e visitantes anônimos; com login, cada usuário veria só as lojas a que tem acesso).
 - Tabelas pré-agregadas e Redis; filas para tarefas pesadas (ex.: geração de campanhas em lote).
 - Avaliação automática de qualidade: um conjunto de perguntas com respostas esperadas, rodado a cada mudança
   de prompt/modelo (*evals*), e feedback do usuário nas respostas.

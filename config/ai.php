@@ -34,7 +34,7 @@ return [
     'max_question_length' => 500,
 
     'rate_limit' => [
-        'per_minute' => (int) env('AI_RATE_LIMIT_PER_MINUTE', 8),
+        'per_minute' => (int) env('AI_RATE_LIMIT_PER_MINUTE', 15),
         'per_day' => (int) env('AI_RATE_LIMIT_PER_DAY', 150),
     ],
 
